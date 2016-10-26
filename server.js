@@ -1,7 +1,13 @@
 var nodemailer = require('nodemailer');
 var express = require('express');
 var bodyParser = require('body-parser');
-var transporterConfig = require('./production.js');
+
+var transporterConfig = require('production.js');
+
+/* to deploy on now.sh, replace:
+ * var transporterConfig = require('production.js'); //on server.js
+ * with var transporterConfig along with module.exports = transporterConfig; //on production.js
+ */
 
 /* CONSTANTS DECLARATION */
 
@@ -24,8 +30,8 @@ app.use(function (req, res, next) {
 	res.header("Content-Type", 'application/json'); //set all routes to content-type application/json
 	res.header("Access-Control-Allow-Origin", "*"); //enable cors
 	res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-	res.header('Access-Control-Allow-Credentials', true);
 	res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+	//res.header('Access-Control-Allow-Credentials', true); //for cache control
 
 	//OPTIONS handle?
 
@@ -304,8 +310,8 @@ app.post('/mailman/citodon', function (req, res) {
 			//there is no hasOwnProperty on req.body (throws error)
 			//if (params.hasOwnProperty(query)) {}
 
-			//is it on the generic object?
-			if (jsonBody.params[query] === '') {
+			//is it on the generic object and is not empty? (as it can be sent from the form page empty)
+			if (jsonBody.params[query] === '' && params[query] !== '') {
 				jsonBody.params[query] = params[query];
 				htmlBody += jsonBody.literal[query] + ": <b>" + jsonBody.params[query] + "</b><br>";
 				textBody += jsonBody.literal[query] + ": " + jsonBody.params[query] + ", ";
@@ -349,7 +355,7 @@ app.get('/mailman/citodon', function (req, res) {
 
 		for (var query in params) {
 
-			if (jsonBody.params[query] === '') {
+			if (jsonBody.params[query] === '' && params[query] !== '') {
 				jsonBody.params[query] = params[query];
 				htmlBody += jsonBody.literal[query] + ": <b>" + jsonBody.params[query] + "</b><br>";
 				textBody += jsonBody.literal[query] + ": " + jsonBody.params[query] + ", ";
@@ -359,8 +365,8 @@ app.get('/mailman/citodon', function (req, res) {
 
 		var mailOptions = {
 			from: '"Mailman" <mailman@service.elbit.com.br>',
-			// to: 'contato@citodon.com.br',
-			to: TESTER_EMAIL,
+			to: 'contato@citodon.com.br',
+			// to: TESTER_EMAIL,
 			bcc: 'cristiano@elbit.com.br, joseeduardobarros@gmail.com',
 			replyTo: jsonBody.params.cEmail,
 			subject: 'Requisição de contato - Citodon',
